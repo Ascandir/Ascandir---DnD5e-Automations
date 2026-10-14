@@ -229,26 +229,28 @@ async function onPostUseActivity(activity) {
     round: found.combat.round
   });
 
-  const effectData = {
-    ...status,
-    name: `${baseName}: ${usedName}`,
-    description: `<p>${description}</p>`,
-    statuses: [STATUS_ID],
-    origin: item?.uuid,
-    flags: {
-      [MODULE_ID]: {
-        combatId: found.combat.id,
-        round: found.combat.round,
-        itemUuid: item?.uuid ?? null,
-        activityUuid: activity.uuid
-      }
-    }
-  };
-  delete effectData.id;
-  effectData._id = STATUS_DOC_ID;
-
   try {
-    await getDocumentClass("ActiveEffect").create(effectData, { parent: actor, keepId: true });
+    // Wie beim manuellen Anklicken im Token-HUD von Foundry erzeugen lassen,
+    // damit alle v14-Felder (u. a. Symbol am Token) korrekt gesetzt sind.
+    const ActiveEffect = getDocumentClass("ActiveEffect");
+    const effect = await ActiveEffect.fromStatusEffect(STATUS_ID);
+    const showIcon = CONST.ACTIVE_EFFECT_SHOW_ICON?.ALWAYS;
+    effect.updateSource({
+      _id: STATUS_DOC_ID,
+      name: `${baseName}: ${usedName}`,
+      description: `<p>${description}</p>`,
+      origin: item?.uuid ?? null,
+      ...(showIcon !== undefined ? { showIcon } : {}),
+      flags: {
+        [MODULE_ID]: {
+          combatId: found.combat.id,
+          round: found.combat.round,
+          itemUuid: item?.uuid ?? null,
+          activityUuid: activity.uuid
+        }
+      }
+    });
+    await ActiveEffect.create(effect.toObject(), { parent: actor, keepId: true });
   } catch(err) {
     console.error(`${MODULE_ID} | Zustand konnte nicht gesetzt werden`, err);
   }
