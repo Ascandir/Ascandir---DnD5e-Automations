@@ -36,7 +36,7 @@
       "Blocked": "{name} hat keine Reaktion mehr – erst wieder zu Beginn des eigenen Zugs."
     },
     "Warnings": {
-      "WrongSystem": "Ascandir - DnD5e Action Economy funktioniert nur mit dem Spielsystem D&D 5e."
+      "WrongSystem": "Ascandir - DnD5e Automations funktioniert nur mit dem Spielsystem D&D 5e."
     }
   }
 }

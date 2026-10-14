@@ -1,6 +1,6 @@
-# Ascandir - DnD5e Action Economy
+# Ascandir - DnD5e Automations
 
-Aktionsökonomie für Foundry VTT (v14) mit dem Spielsystem D&D 5e (6.x).
+Automatisierungen für Foundry VTT (v14) mit dem Spielsystem D&D 5e (6.x).
 
 ## Funktionen
 
@@ -50,7 +50,11 @@ im Würfeldialog einen anderen Modus wählt.
 In Foundry unter **Add-on-Module → Modul installieren** diese Manifest-URL eintragen:
 
 ```
-https://github.com/Ascandir/Ascandir---DnD5e-Action-Economy/releases/latest/download/module.json
+https://github.com/Ascandir/Ascandir---DnD5e-Automations/releases/latest/download/module.json
 ```
 
 Updates erscheinen danach automatisch in Foundry, sobald eine neue Version veröffentlicht ist.
+
+> Hinweis: Das Modul hieß früher „Ascandir - DnD5e Action Economy“. Die interne Modul-ID
+> `ascandir-dnd5e-action-economy` ist geblieben, damit bestehende Installationen und Einstellungen
+> ohne Neuinstallation weiter aktualisiert werden.

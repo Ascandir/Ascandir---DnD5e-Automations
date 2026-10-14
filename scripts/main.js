@@ -1,5 +1,5 @@
 /**
- * Ascandir - DnD5e Action Economy
+ * Ascandir - DnD5e Automations
  *
  * Verfolgt im Kampf die Reaktion jeder Kreatur:
  * - Nutzt eine Kreatur außerhalb ihres eigenen Zugs eine Aktivität, die eine Aktion,

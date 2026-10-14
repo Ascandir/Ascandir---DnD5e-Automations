@@ -36,7 +36,7 @@
       "Blocked": "{name} has no reaction left until the start of their turn."
     },
     "Warnings": {
-      "WrongSystem": "Ascandir - DnD5e Action Economy only works with the D&D 5e game system."
+      "WrongSystem": "Ascandir - DnD5e Automations only works with the D&D 5e game system."
     }
   }
 }
