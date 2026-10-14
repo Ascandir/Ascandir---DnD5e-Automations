@@ -19,14 +19,20 @@ bekommt sie den Zustand **„Reaktion verbraucht“**.
 
 ### Verdeckte Würfe
 
-Per Häkchen in den Moduleinstellungen kann der Spielleiter festlegen, dass bestimmte Würfe immer
-**blind** gewürfelt werden – nur der Spielleiter sieht das Ergebnis im Chat:
+Per Häkchen in den Moduleinstellungen legt der Spielleiter fest, welche Würfe immer **blind**
+gewürfelt werden – nur der Spielleiter sieht das Ergebnis im Chat:
 
-- **Todesrettungswürfe nur für den SL sichtbar**
-- **Heimlichkeitswürfe nur für den SL sichtbar**
+- **Todesrettungswürfe**
+- **jede einzelne Fertigkeit** (Akrobatik, Heimlichkeit, Wahrnehmung, Motiv erkennen … – alle
+  Fertigkeiten von dnd5e, auch eigene), jeweils als eigene Checkbox
 
-Beide sind einzeln schaltbar und standardmäßig aus. Die Einstellung gilt auch dann, wenn ein Spieler
+Alle sind einzeln schaltbar und standardmäßig aus. Die Einstellung gilt auch dann, wenn ein Spieler
 im Würfeldialog einen anderen Modus wählt.
+
+**Dice So Nice:** Verdeckte Würfe rollen trotzdem als 3D-Würfel – als gesichtslose „Geisterwürfel“,
+sodass alle sehen, *dass* gewürfelt wird, aber niemand außer dem Spielleiter das Ergebnis. Dazu
+schaltet das Modul in Dice So Nice die Geisterwürfel für alle Spieler ein (abschaltbar über
+„Dice So Nice: Geisterwürfel bei verdeckten Würfen“). Das gilt dann auch für andere blinde Würfe.
 
 ### Einstellungen (nur Spielleiter)
 
@@ -35,8 +41,9 @@ im Würfeldialog einen anderen Modus wählt.
 | **Wessen Reaktionen verfolgen?** | Nur Spielercharaktere (Standard) oder alle Kampfteilnehmer inkl. NSC. |
 | **Reaktion im eigenen Zug zählt** | Wer eine Reaktions-Fähigkeit im eigenen Zug nutzt, hat bis zum nächsten Zug keine Reaktion mehr (Standard: an). |
 | **Bei bereits verbrauchter Reaktion** | Warnen (Standard), Spielern die Nutzung verbieten oder nichts tun. Der Spielleiter wird nie blockiert. |
-| **Todesrettungswürfe nur für den SL sichtbar** | Todesrettungswürfe werden blind gewürfelt (Standard: aus). |
-| **Heimlichkeitswürfe nur für den SL sichtbar** | Heimlichkeitswürfe werden blind gewürfelt (Standard: aus). |
+| **Verdeckt: Todesrettungswürfe** | Todesrettungswürfe werden blind gewürfelt (Standard: aus). |
+| **Verdeckt: ‹Fertigkeit›** | Eine Checkbox pro Fertigkeit; Würfe darauf werden blind gewürfelt (Standard: aus). |
+| **Dice So Nice: Geisterwürfel bei verdeckten Würfen** | Verdeckte Würfe als gesichtslose 3D-Würfel zeigen (Standard: an). |
 
 **Hinweise**
 

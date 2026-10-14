@@ -1,8 +1,8 @@
 {
   "id": "ascandir-dnd5e-action-economy",
   "title": "Ascandir - DnD5e Automations",
-  "description": "Automatisierungen für D&D 5e: Reaktionen im Kampf verfolgen (Zustand „Reaktion verbraucht“ mit der genutzten Fähigkeit, verschwindet zu Beginn des eigenen Zugs) sowie Todesrettungs- und Heimlichkeitswürfe optional nur für den SL sichtbar.",
-  "version": "0.3.0",
+  "description": "Automatisierungen für D&D 5e: Reaktionen im Kampf verfolgen (Zustand „Reaktion verbraucht“ mit der genutzten Fähigkeit, verschwindet zu Beginn des eigenen Zugs) sowie Todesrettungswürfe und jede einzelne Fertigkeit optional verdeckt würfeln – mit Dice-So-Nice-Geisterwürfeln.",
+  "version": "0.4.0",
   "authors": [
     {
       "name": "Ascandir"

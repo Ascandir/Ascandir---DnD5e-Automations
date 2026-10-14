@@ -23,12 +23,16 @@
         "Off": "Nichts tun"
       },
       "HideDeath": {
-        "Name": "Todesrettungswürfe nur für den SL sichtbar",
+        "Name": "Verdeckt: Todesrettungswürfe",
         "Hint": "Alle Todesrettungswürfe werden verdeckt (blind) gewürfelt: Nur der Spielleiter sieht das Ergebnis im Chat."
       },
-      "HideStealth": {
-        "Name": "Heimlichkeitswürfe nur für den SL sichtbar",
-        "Hint": "Alle Würfe auf Heimlichkeit (Stealth) werden verdeckt (blind) gewürfelt: Nur der Spielleiter sieht das Ergebnis im Chat."
+      "HideSkill": {
+        "Name": "Verdeckt: {skill}",
+        "Hint": "Alle Würfe auf {skill} werden verdeckt (blind) gewürfelt: Nur der Spielleiter sieht das Ergebnis im Chat."
+      },
+      "DsnGhost": {
+        "Name": "Dice So Nice: Geisterwürfel bei verdeckten Würfen",
+        "Hint": "Verdeckte Würfe rollen trotzdem als 3D-Würfel – aber gesichtslos, sodass niemand außer dem Spielleiter das Ergebnis sieht. Schaltet dafür in Dice So Nice „Geisterwürfel bei verdeckten Würfen“ für alle Spieler ein (gilt dann auch für andere blinde Würfe)."
       }
     },
     "Notifications": {

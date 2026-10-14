@@ -28,8 +28,13 @@ const SETTINGS = {
   OWN_TURN: "reactionOnOwnTurn",
   SECOND_USE: "secondUse",
   HIDE_DEATH: "hideDeathSaves",
-  HIDE_STEALTH: "hideStealth"
+  DSN_GHOST: "dsnGhostDice"
 };
+
+/** Einstellungs-Schlüssel für „Fertigkeit verdeckt würfeln“. */
+function skillSettingKey(skill) {
+  return skill === "ste" ? "hideStealth" : `hideSkill-${skill}`;
+}
 
 /* -------------------------------------------- */
 /*  Einstellungen & Zustand                     */
@@ -85,14 +90,28 @@ Hooks.once("init", () => {
     default: false
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.HIDE_STEALTH, {
-    name: "AAE.Settings.HideStealth.Name",
-    hint: "AAE.Settings.HideStealth.Hint",
+  // Eine Checkbox pro dnd5e-Fertigkeit (inkl. eigener Fertigkeiten aus CONFIG.DND5E.skills).
+  // Heimlichkeit behält ihren alten Schlüssel, damit die bisherige Einstellung erhalten bleibt.
+  for ( const skill of Object.keys(CONFIG.DND5E?.skills ?? {}) ) {
+    game.settings.register(MODULE_ID, skillSettingKey(skill), {
+      name: "AAE.Settings.HideSkill.Name",
+      hint: "AAE.Settings.HideSkill.Hint",
+      scope: "world",
+      config: true,
+      restricted: true,
+      type: Boolean,
+      default: false
+    });
+  }
+
+  game.settings.register(MODULE_ID, SETTINGS.DSN_GHOST, {
+    name: "AAE.Settings.DsnGhost.Name",
+    hint: "AAE.Settings.DsnGhost.Hint",
     scope: "world",
     config: true,
     restricted: true,
     type: Boolean,
-    default: false
+    default: true
   });
 
   // dnd5e baut CONFIG.statusEffects erst bei "i18nInit" aus dieser Liste zusammen.
@@ -106,6 +125,25 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("setup", () => {
+  // Fertigkeits-Checkboxen benennen und alphabetisch sortieren (Übersetzungen sind jetzt geladen).
+  const entries = [];
+  for ( const [skill, cfg] of Object.entries(CONFIG.DND5E?.skills ?? {}) ) {
+    const id = `${MODULE_ID}.${skillSettingKey(skill)}`;
+    const setting = game.settings.settings.get(id);
+    if ( !setting ) continue;
+    const label = game.i18n.localize(cfg.label ?? skill);
+    setting.name = game.i18n.format("AAE.Settings.HideSkill.Name", { skill: label });
+    setting.hint = game.i18n.format("AAE.Settings.HideSkill.Hint", { skill: label });
+    entries.push([id, setting, label]);
+  }
+  entries.sort((a, b) => a[2].localeCompare(b[2], game.i18n.lang));
+  const dsnId = `${MODULE_ID}.${SETTINGS.DSN_GHOST}`;
+  const dsn = game.settings.settings.get(dsnId);
+  for ( const [id] of entries ) game.settings.settings.delete(id);
+  if ( dsn ) game.settings.settings.delete(dsnId);
+  for ( const [id, setting] of entries ) game.settings.settings.set(id, setting);
+  if ( dsn ) game.settings.settings.set(dsnId, dsn);
+
   // Feste Dokument-ID für unseren Zustand (dnd5e vergibt sonst eine eigene).
   const status = CONFIG.statusEffects?.[STATUS_ID];
   if ( status ) status._id = STATUS_DOC_ID;
@@ -128,11 +166,13 @@ Hooks.once("ready", () => {
     hideIf(SETTINGS.HIDE_DEATH, message);
   });
   Hooks.on("dnd5e.preRollSkillV2", (config, dialog, message) => {
-    if ( config.skill === "ste" ) hideIf(SETTINGS.HIDE_STEALTH, message);
+    if ( config.skill ) hideIf(skillSettingKey(config.skill), message);
   });
   Hooks.on("dnd5e.postSkillRollConfiguration", (rolls, config, dialog, message) => {
-    if ( config.skill === "ste" ) hideIf(SETTINGS.HIDE_STEALTH, message);
+    if ( config.skill ) hideIf(skillSettingKey(config.skill), message);
   });
+
+  ensureDsnGhostDice();
 });
 
 /* -------------------------------------------- */
@@ -149,9 +189,50 @@ function getBlindMode() {
     ?? CONST.DICE_ROLL_MODES?.BLIND ?? "blindroll";
 }
 
+/**
+ * Dice So Nice: Damit verdeckte Würfe trotzdem als 3D-Würfel rollen (gesichtslose „Geisterwürfel“,
+ * Ergebnis bleibt verborgen), muss in Dice So Nice „Geisterwürfel bei verdeckten Würfen“ aktiv sein.
+ * Der Spielleiter-Client schaltet das bei Bedarf ein (sichtbar für alle Spieler).
+ */
+async function ensureDsnGhostDice() {
+  if ( !game.user.isGM || (game.users.activeGM && !game.users.activeGM.isSelf) ) return;
+  if ( !game.modules.get("dice-so-nice")?.active ) return;
+  if ( !game.settings.get(MODULE_ID, SETTINGS.DSN_GHOST) ) return;
+
+  const ghost = [...game.settings.settings.values()].find(s => (s.namespace === "dice-so-nice")
+    && /ghost/i.test(s.key) && (s.scope === "world"));
+  if ( !ghost ) {
+    console.warn(`${MODULE_ID} | Dice So Nice: Einstellung für Geisterwürfel nicht gefunden.`);
+    return;
+  }
+
+  const current = game.settings.get("dice-so-nice", ghost.key);
+  const off = /disable|deaktiv|none|never|^0\b|^false/i;
+  let target;
+  if ( (ghost.type === Boolean) || (typeof current === "boolean") ) target = true;
+  else if ( ghost.choices ) {
+    const label = (k) => `${k} ${game.i18n.localize(String(ghost.choices[k] ?? ""))}`;
+    // Steht schon auf einer aktiven Option (z. B. „nur für den Werfenden“), nicht überschreiben.
+    if ( (current !== undefined) && !off.test(label(current)) ) return;
+    const keys = Object.keys(ghost.choices);
+    target = keys.find(k => /all|alle/i.test(label(k)) && !off.test(label(k)))
+      ?? keys.filter(k => !off.test(label(k))).pop();
+    if ( (target !== undefined) && (typeof current === "number") ) target = Number(target);
+  }
+  if ( (target === undefined) || (current === target) ) return;
+
+  try {
+    await game.settings.set("dice-so-nice", ghost.key, target);
+    console.log(`${MODULE_ID} | Dice So Nice: Geisterwürfel für verdeckte Würfe aktiviert (${ghost.key} = ${target}).`);
+  } catch(err) {
+    console.error(`${MODULE_ID} | Dice So Nice: Geisterwürfel konnten nicht aktiviert werden`, err);
+  }
+}
+
 /** Setzt den Wurf auf „Blind“, wenn die Einstellung aktiv ist. */
 function hideIf(setting, message) {
-  if ( !message || !game.settings.get(MODULE_ID, setting) ) return;
+  if ( !message || !game.settings.settings.has(`${MODULE_ID}.${setting}`) ) return;
+  if ( !game.settings.get(MODULE_ID, setting) ) return;
   message.rollMode = getBlindMode();
 }
 

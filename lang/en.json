@@ -23,12 +23,16 @@
         "Off": "Do nothing"
       },
       "HideDeath": {
-        "Name": "Death saves visible to the GM only",
+        "Name": "Hidden: death saves",
         "Hint": "All death saving throws are rolled blind: only the GM sees the result in chat."
       },
-      "HideStealth": {
-        "Name": "Stealth checks visible to the GM only",
-        "Hint": "All Stealth checks are rolled blind: only the GM sees the result in chat."
+      "HideSkill": {
+        "Name": "Hidden: {skill}",
+        "Hint": "All {skill} checks are rolled blind: only the GM sees the result in chat."
+      },
+      "DsnGhost": {
+        "Name": "Dice So Nice: ghost dice for hidden rolls",
+        "Hint": "Hidden rolls still show 3D dice, but faceless, so only the GM sees the result. Turns on Dice So Nice’s “ghost dice for hidden rolls” for all players (also applies to other blind rolls)."
       }
     },
     "Notifications": {
