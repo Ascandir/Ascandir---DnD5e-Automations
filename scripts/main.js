@@ -1,0 +1,304 @@
+/**
+ * Ascandir - DnD5e Action Economy
+ *
+ * Verfolgt im Kampf die Reaktion jeder Kreatur:
+ * - Nutzt eine Kreatur außerhalb ihres eigenen Zugs eine Aktivität, die eine Aktion,
+ *   Bonusaktion oder Reaktion kostet (z. B. Gelegenheitsangriff, Schild, Höllischer Tadel),
+ *   bekommt sie den Zustand „Reaktion verbraucht“. Der Name des Zustands zeigt die genutzte Fähigkeit.
+ * - Optional zählt auch eine Reaktion, die im eigenen Zug genutzt wird.
+ * - Zu Beginn ihres nächsten eigenen Zugs verliert die Kreatur den Zustand wieder.
+ * - Endet der Kampf, wird der Zustand bei allen Teilnehmern entfernt.
+ *
+ * Technik:
+ * - "dnd5e.postUseActivity" feuert auf dem Client, der die Aktivität nutzt (der Besitzer),
+ *   dort wird der Zustand angelegt.
+ * - Das Entfernen beim Zugwechsel erledigt der aktive Spielleiter über "updateCombat".
+ */
+
+const MODULE_ID = "ascandir-dnd5e-action-economy";
+const STATUS_ID = "reactionUsed";
+const STATUS_DOC_ID = "ascReactionUsed0"; // feste 16-stellige ID, damit es pro Kreatur nur einen Zustand gibt
+const STATUS_IMG = `modules/${MODULE_ID}/icons/reaction-used.svg`;
+
+/** Aktivierungsarten, die außerhalb des eigenen Zugs die Reaktion verbrauchen. */
+const COUNTED_ACTIVATIONS = new Set(["action", "bonus", "reaction"]);
+
+const SETTINGS = {
+  TRACK: "trackWho",
+  OWN_TURN: "reactionOnOwnTurn",
+  SECOND_USE: "secondUse"
+};
+
+/* -------------------------------------------- */
+/*  Einstellungen & Zustand                     */
+/* -------------------------------------------- */
+
+Hooks.once("init", () => {
+  game.settings.register(MODULE_ID, SETTINGS.TRACK, {
+    name: "AAE.Settings.Track.Name",
+    hint: "AAE.Settings.Track.Hint",
+    scope: "world",
+    config: true,
+    restricted: true,
+    type: String,
+    default: "players",
+    choices: {
+      players: "AAE.Settings.Track.Players",
+      all: "AAE.Settings.Track.All"
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.OWN_TURN, {
+    name: "AAE.Settings.OwnTurn.Name",
+    hint: "AAE.Settings.OwnTurn.Hint",
+    scope: "world",
+    config: true,
+    restricted: true,
+    type: Boolean,
+    default: true
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.SECOND_USE, {
+    name: "AAE.Settings.SecondUse.Name",
+    hint: "AAE.Settings.SecondUse.Hint",
+    scope: "world",
+    config: true,
+    restricted: true,
+    type: String,
+    default: "warn",
+    choices: {
+      warn: "AAE.Settings.SecondUse.Warn",
+      block: "AAE.Settings.SecondUse.Block",
+      off: "AAE.Settings.SecondUse.Off"
+    }
+  });
+
+  // dnd5e baut CONFIG.statusEffects erst bei "i18nInit" aus dieser Liste zusammen.
+  if ( CONFIG.DND5E?.statusEffects ) {
+    CONFIG.DND5E.statusEffects[STATUS_ID] = {
+      name: "AAE.Status.Name",
+      img: STATUS_IMG,
+      order: 50
+    };
+  }
+});
+
+Hooks.once("setup", () => {
+  // Feste Dokument-ID für unseren Zustand (dnd5e vergibt sonst eine eigene).
+  const status = CONFIG.statusEffects?.[STATUS_ID];
+  if ( status ) status._id = STATUS_DOC_ID;
+});
+
+Hooks.once("ready", () => {
+  if ( game.system.id !== "dnd5e" ) {
+    if ( game.user.isGM ) ui.notifications.warn(game.i18n.localize("AAE.Warnings.WrongSystem"));
+    return;
+  }
+  Hooks.on("dnd5e.preUseActivity", onPreUseActivity);
+  Hooks.on("dnd5e.postUseActivity", onPostUseActivity);
+  Hooks.on("updateCombat", onUpdateCombat);
+  Hooks.on("deleteCombat", onDeleteCombat);
+  Hooks.on("deleteCombatant", onDeleteCombatant);
+});
+
+/* -------------------------------------------- */
+/*  Hilfsfunktionen                             */
+/* -------------------------------------------- */
+
+/**
+ * Sucht einen laufenden Kampf, in dem die Kreatur mitkämpft.
+ * @param {Actor} actor
+ * @returns {{combat: Combat, combatant: Combatant}|null}
+ */
+function findCombat(actor) {
+  if ( !actor ) return null;
+  const candidates = [game.combat, ...game.combats].filter(c => c?.started);
+  for ( const combat of candidates ) {
+    const combatant = combat.combatants.find(c => c.actor?.uuid === actor.uuid);
+    if ( combatant ) return { combat, combatant };
+  }
+  return null;
+}
+
+/** Ist die Kreatur gerade selbst am Zug? */
+function isOwnTurn(combat, actor) {
+  return combat.combatant?.actor?.uuid === actor.uuid;
+}
+
+/** Soll diese Kreatur laut Einstellung überwacht werden? */
+function isTracked(actor) {
+  if ( game.settings.get(MODULE_ID, SETTINGS.TRACK) === "all" ) return true;
+  return actor.hasPlayerOwner;
+}
+
+/** Bestehende „Reaktion verbraucht“-Effekte einer Kreatur. */
+function getReactionEffects(actor) {
+  return actor?.effects.filter(e => e.statuses.has(STATUS_ID)) ?? [];
+}
+
+/**
+ * Würde diese Nutzung die Reaktion verbrauchen?
+ * @param {Activity} activity
+ * @returns {{combat: Combat, combatant: Combatant}|null}  Kampfdaten, falls ja.
+ */
+function usesReaction(activity) {
+  const actor = activity?.actor;
+  if ( !actor || !isTracked(actor) ) return null;
+
+  const type = activity.activation?.type;
+  if ( !COUNTED_ACTIVATIONS.has(type) ) return null;
+
+  const found = findCombat(actor);
+  if ( !found ) return null;
+
+  if ( isOwnTurn(found.combat, actor) ) {
+    // Im eigenen Zug zählt nur eine echte Reaktion – und nur, wenn eingestellt.
+    if ( (type !== "reaction") || !game.settings.get(MODULE_ID, SETTINGS.OWN_TURN) ) return null;
+  }
+  return found;
+}
+
+/**
+ * Wer räumt auf? Der aktive Spielleiter – ist keiner da, der Nutzer, der die Änderung ausgelöst hat.
+ * @param {string} userId
+ */
+function isResponsibleUser(userId) {
+  const gm = game.users.activeGM;
+  if ( gm ) return gm.isSelf;
+  return userId === game.user.id;
+}
+
+/** Entfernt den Zustand von einer Kreatur. */
+async function clearReaction(actor) {
+  const effects = getReactionEffects(actor);
+  if ( !effects.length || !actor.isOwner ) return;
+  try {
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(e => e.id));
+  } catch(err) {
+    console.error(`${MODULE_ID} | Zustand konnte nicht entfernt werden`, err);
+  }
+}
+
+/* -------------------------------------------- */
+/*  Aktivitäten                                 */
+/* -------------------------------------------- */
+
+/**
+ * Vor der Nutzung: Ist die Reaktion schon verbraucht, warnen oder blockieren.
+ */
+function onPreUseActivity(activity) {
+  let mode = game.settings.get(MODULE_ID, SETTINGS.SECOND_USE);
+  if ( mode === "off" ) return;
+  if ( game.user.isGM ) mode = "warn"; // Der Spielleiter wird nie blockiert, nur gewarnt.
+  if ( !usesReaction(activity) ) return;
+  if ( !getReactionEffects(activity.actor).length ) return;
+
+  const message = game.i18n.format(
+    mode === "block" ? "AAE.Notifications.Blocked" : "AAE.Notifications.AlreadyUsed",
+    { name: activity.actor.name }
+  );
+  if ( mode === "block" ) {
+    ui.notifications.error(message);
+    return false;
+  }
+  ui.notifications.warn(message);
+}
+
+/**
+ * Nach der Nutzung: Zustand „Reaktion verbraucht“ mit der genutzten Fähigkeit setzen.
+ */
+async function onPostUseActivity(activity) {
+  const found = usesReaction(activity);
+  if ( !found ) return;
+
+  const actor = activity.actor;
+  if ( !actor.isOwner ) return;
+
+  // Bereits verbraucht (z. B. trotz Warnung erneut genutzt) – nichts doppelt anlegen.
+  if ( getReactionEffects(actor).length ) return;
+
+  const status = CONFIG.statusEffects[STATUS_ID];
+  if ( !status ) return;
+
+  const item = activity.item;
+  const usedName = item?.name ?? activity.name;
+  const baseName = game.i18n.localize("AAE.Status.Name");
+  const description = game.i18n.format("AAE.Status.Description", {
+    actor: actor.name,
+    used: usedName,
+    round: found.combat.round
+  });
+
+  const effectData = {
+    ...status,
+    name: `${baseName}: ${usedName}`,
+    description: `<p>${description}</p>`,
+    statuses: [STATUS_ID],
+    origin: item?.uuid,
+    flags: {
+      [MODULE_ID]: {
+        combatId: found.combat.id,
+        round: found.combat.round,
+        itemUuid: item?.uuid ?? null,
+        activityUuid: activity.uuid
+      }
+    }
+  };
+  delete effectData.id;
+  effectData._id = STATUS_DOC_ID;
+
+  try {
+    await getDocumentClass("ActiveEffect").create(effectData, { parent: actor, keepId: true });
+  } catch(err) {
+    console.error(`${MODULE_ID} | Zustand konnte nicht gesetzt werden`, err);
+  }
+}
+
+/* -------------------------------------------- */
+/*  Kampfverlauf                                */
+/* -------------------------------------------- */
+
+/**
+ * Zugwechsel: Wer jetzt dran ist, bekommt seine Reaktion zurück.
+ */
+function onUpdateCombat(combat, changed, options, userId) {
+  if ( !(("turn" in changed) || ("round" in changed)) ) return;
+  if ( !isResponsibleUser(userId) ) return;
+
+  // Kampf zurückgesetzt (Runde 0): alle aufräumen.
+  if ( !combat.started ) {
+    clearCombat(combat);
+    return;
+  }
+
+  const actor = combat.combatant?.actor;
+  if ( actor ) clearReaction(actor);
+}
+
+/** Kampf beendet: allen Teilnehmern den Zustand entfernen. */
+function onDeleteCombat(combat, options, userId) {
+  if ( !isResponsibleUser(userId) ) return;
+  clearCombat(combat);
+}
+
+/** Kreatur aus dem Kampf entfernt: Zustand entfernen, falls sie in keinem anderen Kampf steht. */
+function onDeleteCombatant(combatant, options, userId) {
+  if ( !isResponsibleUser(userId) ) return;
+  const actor = combatant.actor;
+  if ( !actor ) return;
+  const stillFighting = game.combats.some(c => (c.id !== combatant.parent?.id) && c.started
+    && c.combatants.some(o => o.actor?.uuid === actor.uuid));
+  if ( !stillFighting ) clearReaction(actor);
+}
+
+function clearCombat(combat) {
+  const seen = new Set();
+  for ( const combatant of combat.combatants ) {
+    const actor = combatant.actor;
+    if ( !actor || seen.has(actor.uuid) ) continue;
+    seen.add(actor.uuid);
+    const stillFighting = game.combats.some(c => (c.id !== combat.id) && c.started
+      && c.combatants.some(o => o.actor?.uuid === actor.uuid));
+    if ( !stillFighting ) clearReaction(actor);
+  }
+}

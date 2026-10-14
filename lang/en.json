@@ -1,0 +1,34 @@
+{
+  "AAE": {
+    "Status": {
+      "Name": "Reaction Used",
+      "Description": "{actor} used their reaction in round {round} for: <strong>{used}</strong>. The reaction is available again at the start of their next turn."
+    },
+    "Settings": {
+      "Track": {
+        "Name": "Track whose reactions?",
+        "Hint": "Who automatically receives the \"Reaction Used\" condition.",
+        "Players": "Player characters only (actors with a player owner)",
+        "All": "All combatants (including NPCs and monsters)"
+      },
+      "OwnTurn": {
+        "Name": "Reactions on your own turn count",
+        "Hint": "If a feature with the \"Reaction\" activation is used on your own turn, the reaction counts as used as well (until the start of your next turn). Actions and bonus actions on your own turn never count."
+      },
+      "SecondUse": {
+        "Name": "When the reaction is already used",
+        "Hint": "What happens when a creature without a reaction tries to use something outside its turn again. The GM is never blocked, only warned.",
+        "Warn": "Warn but allow",
+        "Block": "Prevent players from using it",
+        "Off": "Do nothing"
+      }
+    },
+    "Notifications": {
+      "AlreadyUsed": "{name} has already used their reaction this round.",
+      "Blocked": "{name} has no reaction left until the start of their turn."
+    },
+    "Warnings": {
+      "WrongSystem": "Ascandir - DnD5e Action Economy only works with the D&D 5e game system."
+    }
+  }
+}

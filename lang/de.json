@@ -1,0 +1,34 @@
+{
+  "AAE": {
+    "Status": {
+      "Name": "Reaktion verbraucht",
+      "Description": "{actor} hat in Runde {round} die Reaktion genutzt für: <strong>{used}</strong>. Zu Beginn des nächsten eigenen Zugs ist die Reaktion wieder verfügbar."
+    },
+    "Settings": {
+      "Track": {
+        "Name": "Wessen Reaktionen verfolgen?",
+        "Hint": "Bei wem der Zustand „Reaktion verbraucht“ automatisch gesetzt wird.",
+        "Players": "Nur Spielercharaktere (Akteure mit Spieler-Besitzer)",
+        "All": "Alle Kampfteilnehmer (auch NSC und Monster)"
+      },
+      "OwnTurn": {
+        "Name": "Reaktion im eigenen Zug zählt",
+        "Hint": "Wird eine Fähigkeit mit der Aktivierung „Reaktion“ im eigenen Zug genutzt, gilt die Reaktion ebenfalls als verbraucht (bis zum Beginn des nächsten eigenen Zugs). Aktionen und Bonusaktionen im eigenen Zug zählen nie."
+      },
+      "SecondUse": {
+        "Name": "Bei bereits verbrauchter Reaktion",
+        "Hint": "Was passiert, wenn eine Kreatur ohne Reaktion außerhalb ihres Zugs erneut etwas nutzen will. Der Spielleiter wird nie blockiert, nur gewarnt.",
+        "Warn": "Warnen, aber zulassen",
+        "Block": "Spielern die Nutzung verbieten",
+        "Off": "Nichts tun"
+      }
+    },
+    "Notifications": {
+      "AlreadyUsed": "{name} hat die Reaktion in dieser Runde bereits verbraucht.",
+      "Blocked": "{name} hat keine Reaktion mehr – erst wieder zu Beginn des eigenen Zugs."
+    },
+    "Warnings": {
+      "WrongSystem": "Ascandir - DnD5e Action Economy funktioniert nur mit dem Spielsystem D&D 5e."
+    }
+  }
+}
