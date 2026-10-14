@@ -1,7 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="46" fill="#3a1f12" stroke="#d4a64a" stroke-width="5"/>
-  <path d="M28 52 A22 22 0 1 1 50 72" fill="none" stroke="#f3e6c4" stroke-width="7" stroke-linecap="round"/>
-  <path d="M16 46 L28 60 L38 44 Z" fill="#f3e6c4"/>
-  <path d="M55 24 L42 52 L52 52 L46 76 L62 44 L52 44 Z" fill="#d4a64a" stroke="#3a1f12" stroke-width="2" stroke-linejoin="round"/>
-  <line x1="22" y1="22" x2="78" y2="78" stroke="#b3261e" stroke-width="7" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" version="1.1" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Aussparung um den roten Strich, wie bei den dnd5e-Zuständen (z. B. Blind, Taub) -->
+    <mask id="gap" maskUnits="userSpaceOnUse" x="0" y="0" width="384" height="384">
+      <rect width="384" height="384" fill="#fff"/>
+      <line x1="338" y1="46" x2="46" y2="338" stroke="#000" stroke-width="74" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <g id="reaction" mask="url(#gap)">
+    <!-- Kreispfeil: Reaktion / Gegenzug -->
+    <path d="M156 76 A128 128 0 1 1 74 218" fill="none" style="stroke: var(--icon-fill, #fff);" stroke-width="46" stroke-linecap="round"/>
+    <path d="M22 232 L126 232 L74 152 Z" style="fill: var(--icon-fill, #fff);" stroke="var(--icon-fill, #fff)" stroke-width="16" stroke-linejoin="round"/>
+    <!-- Blitz: blitzschnelle Handlung -->
+    <path d="M214 108 L156 208 L190 208 L176 284 L240 180 L204 180 L230 108 Z" style="fill: var(--icon-fill, #fff);"/>
+  </g>
+  <!-- Roter Strich: verbraucht -->
+  <line id="red" x1="338" y1="46" x2="46" y2="338" stroke="#f00" stroke-width="36" stroke-linecap="round"/>
 </svg>
