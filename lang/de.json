@@ -21,6 +21,14 @@
         "Warn": "Warnen, aber zulassen",
         "Block": "Spielern die Nutzung verbieten",
         "Off": "Nichts tun"
+      },
+      "HideDeath": {
+        "Name": "Todesrettungswürfe nur für den SL sichtbar",
+        "Hint": "Alle Todesrettungswürfe werden verdeckt (blind) gewürfelt: Nur der Spielleiter sieht das Ergebnis im Chat."
+      },
+      "HideStealth": {
+        "Name": "Heimlichkeitswürfe nur für den SL sichtbar",
+        "Hint": "Alle Würfe auf Heimlichkeit (Stealth) werden verdeckt (blind) gewürfelt: Nur der Spielleiter sieht das Ergebnis im Chat."
       }
     },
     "Notifications": {

@@ -21,6 +21,14 @@
         "Warn": "Warn but allow",
         "Block": "Prevent players from using it",
         "Off": "Do nothing"
+      },
+      "HideDeath": {
+        "Name": "Death saves visible to the GM only",
+        "Hint": "All death saving throws are rolled blind: only the GM sees the result in chat."
+      },
+      "HideStealth": {
+        "Name": "Stealth checks visible to the GM only",
+        "Hint": "All Stealth checks are rolled blind: only the GM sees the result in chat."
       }
     },
     "Notifications": {

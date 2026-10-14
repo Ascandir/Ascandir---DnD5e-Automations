@@ -26,7 +26,9 @@ const COUNTED_ACTIVATIONS = new Set(["action", "bonus", "reaction"]);
 const SETTINGS = {
   TRACK: "trackWho",
   OWN_TURN: "reactionOnOwnTurn",
-  SECOND_USE: "secondUse"
+  SECOND_USE: "secondUse",
+  HIDE_DEATH: "hideDeathSaves",
+  HIDE_STEALTH: "hideStealth"
 };
 
 /* -------------------------------------------- */
@@ -73,6 +75,26 @@ Hooks.once("init", () => {
     }
   });
 
+  game.settings.register(MODULE_ID, SETTINGS.HIDE_DEATH, {
+    name: "AAE.Settings.HideDeath.Name",
+    hint: "AAE.Settings.HideDeath.Hint",
+    scope: "world",
+    config: true,
+    restricted: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.HIDE_STEALTH, {
+    name: "AAE.Settings.HideStealth.Name",
+    hint: "AAE.Settings.HideStealth.Hint",
+    scope: "world",
+    config: true,
+    restricted: true,
+    type: Boolean,
+    default: false
+  });
+
   // dnd5e baut CONFIG.statusEffects erst bei "i18nInit" aus dieser Liste zusammen.
   if ( CONFIG.DND5E?.statusEffects ) {
     CONFIG.DND5E.statusEffects[STATUS_ID] = {
@@ -99,7 +121,39 @@ Hooks.once("ready", () => {
   Hooks.on("updateCombat", onUpdateCombat);
   Hooks.on("deleteCombat", onDeleteCombat);
   Hooks.on("deleteCombatant", onDeleteCombatant);
+
+  // Verdeckte Würfe: vorher (damit der Dialog es schon anzeigt) und nach dem Dialog (damit es sicher gilt).
+  Hooks.on("dnd5e.preRollDeathSaveV2", (config, dialog, message) => hideIf(SETTINGS.HIDE_DEATH, message));
+  Hooks.on("dnd5e.postDeathSaveRollConfiguration", (rolls, config, dialog, message) => {
+    hideIf(SETTINGS.HIDE_DEATH, message);
+  });
+  Hooks.on("dnd5e.preRollSkillV2", (config, dialog, message) => {
+    if ( config.skill === "ste" ) hideIf(SETTINGS.HIDE_STEALTH, message);
+  });
+  Hooks.on("dnd5e.postSkillRollConfiguration", (rolls, config, dialog, message) => {
+    if ( config.skill === "ste" ) hideIf(SETTINGS.HIDE_STEALTH, message);
+  });
 });
+
+/* -------------------------------------------- */
+/*  Verdeckte Würfe                             */
+/* -------------------------------------------- */
+
+/**
+ * Würfelmodus „Blind“ (nur der Spielleiter sieht das Ergebnis) in der jeweiligen Foundry-Schreibweise.
+ * @returns {string}
+ */
+function getBlindMode() {
+  const modes = Object.keys(CONFIG.ChatMessage?.modes ?? {});
+  return modes.find(m => m === "blind") ?? modes.find(m => m.includes("blind"))
+    ?? CONST.DICE_ROLL_MODES?.BLIND ?? "blindroll";
+}
+
+/** Setzt den Wurf auf „Blind“, wenn die Einstellung aktiv ist. */
+function hideIf(setting, message) {
+  if ( !message || !game.settings.get(MODULE_ID, setting) ) return;
+  message.rollMode = getBlindMode();
+}
 
 /* -------------------------------------------- */
 /*  Hilfsfunktionen                             */

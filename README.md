@@ -17,6 +17,17 @@ bekommt sie den Zustand **„Reaktion verbraucht“**.
 - Außerhalb des Kampfes passiert nichts.
 - Der Spielleiter kann den Zustand jederzeit von Hand über das Token-HUD setzen oder entfernen.
 
+### Verdeckte Würfe
+
+Per Häkchen in den Moduleinstellungen kann der Spielleiter festlegen, dass bestimmte Würfe immer
+**blind** gewürfelt werden – nur der Spielleiter sieht das Ergebnis im Chat:
+
+- **Todesrettungswürfe nur für den SL sichtbar**
+- **Heimlichkeitswürfe nur für den SL sichtbar**
+
+Beide sind einzeln schaltbar und standardmäßig aus. Die Einstellung gilt auch dann, wenn ein Spieler
+im Würfeldialog einen anderen Modus wählt.
+
 ### Einstellungen (nur Spielleiter)
 
 | Einstellung | Wirkung |
@@ -24,6 +35,8 @@ bekommt sie den Zustand **„Reaktion verbraucht“**.
 | **Wessen Reaktionen verfolgen?** | Nur Spielercharaktere (Standard) oder alle Kampfteilnehmer inkl. NSC. |
 | **Reaktion im eigenen Zug zählt** | Wer eine Reaktions-Fähigkeit im eigenen Zug nutzt, hat bis zum nächsten Zug keine Reaktion mehr (Standard: an). |
 | **Bei bereits verbrauchter Reaktion** | Warnen (Standard), Spielern die Nutzung verbieten oder nichts tun. Der Spielleiter wird nie blockiert. |
+| **Todesrettungswürfe nur für den SL sichtbar** | Todesrettungswürfe werden blind gewürfelt (Standard: aus). |
+| **Heimlichkeitswürfe nur für den SL sichtbar** | Heimlichkeitswürfe werden blind gewürfelt (Standard: aus). |
 
 **Hinweise**
 

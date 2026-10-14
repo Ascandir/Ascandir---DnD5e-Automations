@@ -2,7 +2,7 @@
   "id": "ascandir-dnd5e-action-economy",
   "title": "Ascandir - DnD5e Action Economy",
   "description": "Aktionsökonomie für D&D 5e: Nutzt eine Kreatur im Kampf außerhalb ihres Zugs eine Aktion (oder eine Reaktion), bekommt sie den Zustand „Reaktion verbraucht“ mit der genutzten Fähigkeit. Zu Beginn ihres nächsten Zugs verschwindet er automatisch.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "authors": [
     {
       "name": "Ascandir"
